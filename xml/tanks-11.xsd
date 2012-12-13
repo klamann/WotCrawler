@@ -1,0 +1,273 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<xs:schema elementFormDefault="qualified" version="1.0" targetNamespace="http://nx42.de/projects/wot/schema11" xmlns:tns="http://nx42.de/projects/wot/schema11" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+  <xs:element name="details" type="tns:equipment"/>
+
+  <xs:element name="engine" type="tns:engine"/>
+
+  <xs:element name="gun" type="tns:gun"/>
+
+  <xs:element name="modules" type="tns:modules"/>
+
+  <xs:element name="radio" type="tns:radio"/>
+
+  <xs:element name="suspension" type="tns:suspension"/>
+
+  <xs:element name="tank" type="tns:tank"/>
+
+  <xs:element name="tankref" type="tns:tankRef"/>
+
+  <xs:element name="turret" type="tns:turret"/>
+
+  <xs:element name="wot-db" type="tns:tanksDB"/>
+
+  <xs:complexType name="tanksDB">
+    <xs:sequence>
+      <xs:element name="tanks" minOccurs="0">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element ref="tns:tank" minOccurs="0" maxOccurs="unbounded"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element ref="tns:modules" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="tank">
+    <xs:complexContent>
+      <xs:extension base="tns:baseProperties">
+        <xs:sequence>
+          <xs:element name="type" type="tns:tankType" minOccurs="0"/>
+          <xs:element name="battleTierMin" type="xs:byte"/>
+          <xs:element name="battleTierMax" type="xs:byte"/>
+          <xs:element name="gift" type="xs:boolean"/>
+          <xs:element name="hullFront" type="xs:double"/>
+          <xs:element name="hullSide" type="xs:double"/>
+          <xs:element name="hullRear" type="xs:double"/>
+          <xs:element name="speed" type="xs:double"/>
+          <xs:element name="crewMembers" type="xs:byte"/>
+          <xs:element name="gunArcLeft" type="xs:int"/>
+          <xs:element name="gunArcRight" type="xs:int"/>
+          <xs:element name="stock" type="tns:equipment" minOccurs="0"/>
+          <xs:element name="top" type="tns:equipment" minOccurs="0"/>
+          <xs:element name="parents" minOccurs="0">
+            <xs:complexType>
+              <xs:sequence>
+                <xs:element name="tank" type="tns:tankRef" minOccurs="0" maxOccurs="unbounded"/>
+              </xs:sequence>
+            </xs:complexType>
+          </xs:element>
+          <xs:element name="children" minOccurs="0">
+            <xs:complexType>
+              <xs:sequence>
+                <xs:element name="tank" type="tns:tankRef" minOccurs="0" maxOccurs="unbounded"/>
+              </xs:sequence>
+            </xs:complexType>
+          </xs:element>
+        </xs:sequence>
+        <xs:attribute name="id" type="xs:ID"/>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+
+  <xs:complexType name="baseProperties" abstract="true">
+    <xs:sequence>
+      <xs:element name="name" type="xs:string" minOccurs="0"/>
+      <xs:element name="nation" type="tns:nation" minOccurs="0"/>
+      <xs:element name="tier" type="xs:byte"/>
+      <xs:element name="cost" type="xs:int"/>
+      <xs:element name="currency" type="tns:currency" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="equipment">
+    <xs:sequence>
+      <xs:element name="hitpoints" type="xs:int"/>
+      <xs:element name="weight" type="xs:double"/>
+      <xs:element name="weightLimit" type="xs:double"/>
+      <xs:element name="gunElevationLow" type="xs:double"/>
+      <xs:element name="gunElevationHigh" type="xs:double"/>
+      <xs:element name="viewRange" type="xs:double"/>
+    </xs:sequence>
+    <xs:attribute name="development" type="tns:development"/>
+  </xs:complexType>
+
+  <xs:complexType name="tankRef">
+    <xs:sequence/>
+    <xs:attribute name="ref" type="xs:IDREF"/>
+  </xs:complexType>
+
+  <xs:complexType name="modules">
+    <xs:sequence>
+      <xs:element name="engines" minOccurs="0">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element ref="tns:engine" minOccurs="0" maxOccurs="unbounded"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="guns" minOccurs="0">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element ref="tns:gun" minOccurs="0" maxOccurs="unbounded"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="radios" minOccurs="0">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element ref="tns:radio" minOccurs="0" maxOccurs="unbounded"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="suspensions" minOccurs="0">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element ref="tns:suspension" minOccurs="0" maxOccurs="unbounded"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="turrets" minOccurs="0">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element ref="tns:turret" minOccurs="0" maxOccurs="unbounded"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="engine">
+    <xs:complexContent>
+      <xs:extension base="tns:module">
+        <xs:sequence>
+          <xs:element name="power" type="xs:int"/>
+          <xs:element name="firechance" type="xs:double"/>
+          <xs:element name="gas" type="tns:gas" minOccurs="0"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+
+  <xs:complexType name="module" abstract="true">
+    <xs:complexContent>
+      <xs:extension base="tns:baseProperties">
+        <xs:sequence>
+          <xs:element name="weight" type="xs:double"/>
+          <xs:element name="compatibility" minOccurs="0">
+            <xs:complexType>
+              <xs:sequence>
+                <xs:element name="tank" type="tns:tankRef" minOccurs="0" maxOccurs="unbounded"/>
+              </xs:sequence>
+            </xs:complexType>
+          </xs:element>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+
+  <xs:complexType name="gun">
+    <xs:complexContent>
+      <xs:extension base="tns:module">
+        <xs:sequence>
+          <xs:element name="ammoCapacityMin" type="xs:int"/>
+          <xs:element name="ammoCapacityMax" type="xs:int"/>
+          <xs:element name="dmgAP" type="xs:int"/>
+          <xs:element name="dmgAPCR" type="xs:int"/>
+          <xs:element name="dmgHE" type="xs:int"/>
+          <xs:element name="dmgHEAT" type="xs:int"/>
+          <xs:element name="penAP" type="xs:int"/>
+          <xs:element name="penAPCR" type="xs:int"/>
+          <xs:element name="penHE" type="xs:int"/>
+          <xs:element name="penHEAT" type="xs:int"/>
+          <xs:element name="fireRateMin" type="xs:double"/>
+          <xs:element name="fireRateMax" type="xs:double"/>
+          <xs:element name="accuracyMin" type="xs:double"/>
+          <xs:element name="accuracyMax" type="xs:double"/>
+          <xs:element name="aimTimeMin" type="xs:double"/>
+          <xs:element name="aimTimeMax" type="xs:double"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+
+  <xs:complexType name="radio">
+    <xs:complexContent>
+      <xs:extension base="tns:module">
+        <xs:sequence>
+          <xs:element name="range" type="xs:int"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+
+  <xs:complexType name="suspension">
+    <xs:complexContent>
+      <xs:extension base="tns:module">
+        <xs:sequence>
+          <xs:element name="load" type="xs:double"/>
+          <xs:element name="traverse" type="xs:int"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+
+  <xs:complexType name="turret">
+    <xs:complexContent>
+      <xs:extension base="tns:module">
+        <xs:sequence>
+          <xs:element name="armorFront" type="xs:double"/>
+          <xs:element name="armorSide" type="xs:double"/>
+          <xs:element name="armorRear" type="xs:double"/>
+          <xs:element name="traverse" type="xs:double"/>
+          <xs:element name="viewRange" type="xs:double"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+
+  <xs:simpleType name="tankType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="LightTank"/>
+      <xs:enumeration value="MediumTank"/>
+      <xs:enumeration value="HeavyTank"/>
+      <xs:enumeration value="TankDestroyer"/>
+      <xs:enumeration value="SelfPropelledGun"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="development">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="Stock"/>
+      <xs:enumeration value="Top"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="nation">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="China"/>
+      <xs:enumeration value="France"/>
+      <xs:enumeration value="Germany"/>
+      <xs:enumeration value="UK"/>
+      <xs:enumeration value="USA"/>
+      <xs:enumeration value="USSR"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="currency">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="Credits"/>
+      <xs:enumeration value="Gold"/>
+      <xs:enumeration value="Premium"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="gas">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="Gasoline"/>
+      <xs:enumeration value="Diesel"/>
+    </xs:restriction>
+  </xs:simpleType>
+</xs:schema>
+
