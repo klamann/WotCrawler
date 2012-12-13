@@ -8,10 +8,17 @@ The program creates an XML database that can be used to generate more sophistica
 content analysis (see [examples](http://www.nx42.de/projects/wot/rating.html)).
 Basic content analysis and HTML table export are already implemented.
 
+## Database and Binaries
+
+The full XML database and the latest binaries are available from the
+[developer section](http://www.nx42.de/projects/wot/developers.html)
+of the project home page.
+
 ## Contact
 
-WotCrawler is being developed by Sebastian Straub, <sebastian-straub@gmx.net>
-For further information, please visit [the project homepage](http://www.nx42.de/projects/wot/).
+WotCrawler is being developed by Sebastian Straub, <sebastian-straub@gmx.net>.
+
+For further information, please visit the [project homepage](http://www.nx42.de/projects/wot/).
 
 ## Copyright
 
