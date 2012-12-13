@@ -1,6 +1,17 @@
 # WoT Database Crawler
 
-tba
+The WoT Database Crawler is a generic tool to rebuild the internal Vehicle Database
+from the popular computer game [World of Tanks](http://worldoftanks.com/) by crawling
+the data that is available from the public wiki.
+
+The program creates an XML database that can be used to generate more sophisticated
+content analysis (see [examples](http://www.nx42.de/projects/wot/rating.html)).
+Basic content analysis and HTML table export are already implemented.
+
+## Contact
+
+WotCrawler is being developed by Sebastian Straub, <sebastian-straub@gmx.net>
+For further information, please visit [the project homepage](http://www.nx42.de/projects/wot/).
 
 ## Copyright
 
