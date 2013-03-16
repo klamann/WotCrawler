@@ -368,6 +368,7 @@ public class FieldDef {
         
         // mobility
         Field.ME_Power,
+        Field.DP_HPperTon,
         Field.T_TopSpeed,
         Field.MS_Traverse,
         
@@ -633,6 +634,7 @@ public class FieldDef {
         Field.RT_GunElevation,
         
         Field.RT_TopSpeed,
+        Field.RT_PowerWeightRatio,
         Field.RT_TraverseSuspension,
         Field.RT_TraverseTurret,
         

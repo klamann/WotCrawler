@@ -23,6 +23,7 @@ import java.net.URL;
 import java.text.NumberFormat;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -80,7 +81,8 @@ public class Crawler {
     
     /** the tanks database that is filled by this crawler */
     protected TanksDB db = new TanksDB();
-    /** a mapping from tank name to actual tank objects (used to create parent-child relations) */
+    /** a mapping from tank name (actually: wiki URL) to the internal tank objects
+     * (used to create parent-child relations) */
     protected Map<String,Tank> tankMapping = new HashMap<String, Tank>();
     
     
@@ -240,7 +242,7 @@ public class Crawler {
                     Tank tank = crawlTankDetails(context);
                     
                     tanks.add(tank);
-                    tankMapping.put(tank.name, tank);
+                    tankMapping.put(tank.wikiURL, tank);
                 }
                 
             } catch (ParseException ex) {
@@ -323,6 +325,7 @@ public class Crawler {
         
         // basics
         
+        tank.wikiURL = firstXPathTextResult(context, "//h1[@id=\"firstHeading\"]");
         tank.name = firstXPathTextResult(context, "./h3").replace("\u00a0","");     // remove nbsp
         tank.id = generateTankID(tank.name);
         tank.nation = BaseProperties.Nation.parse(firstXPathTextResult(context, "./table[1]//td[1]"));
@@ -373,10 +376,10 @@ public class Crawler {
         if(gunarc.length == 1) {
             // usually 360 here, so make it 0-360
             tank.gunArcLeft  = 0;
-            tank.gunArcRight = Integer.parseInt(gunarc[0]);
+            tank.gunArcRight = Double.parseDouble(gunarc[0]);
         } else {
-            tank.gunArcLeft  = Integer.parseInt(gunarc[0]);
-            tank.gunArcRight = Integer.parseInt(gunarc[1]);
+            tank.gunArcLeft  = Double.parseDouble(gunarc[0]);
+            tank.gunArcRight = Double.parseDouble(gunarc[1]);
         }
         
         // depending equipment
@@ -413,9 +416,14 @@ public class Crawler {
         equip.hitpoints = format.parse(firstCellAfterHeader(context, "Hit Points", dev)).intValue();
         
         // weight and limit
-        String weightLoad = firstCellAfterHeader(context, "Weight Limit", dev);
-        equip.weight      = Double.parseDouble(weightLoad.split("/")[0]);
-        equip.weightLimit = Double.parseDouble(weightLoad.split("/")[1]);
+        String[] weightLoad = firstCellAfterHeader(context, "Weight Limit", dev).split("/");
+        equip.weight = Double.parseDouble(weightLoad[0]);
+        if(weightLoad.length > 1) {
+            equip.weightLimit = Double.parseDouble(weightLoad[1]);
+        } else {
+            // if no second value is given, set equal...
+            equip.weightLimit = equip.weight;
+        }
         
         // elevation
         String[] elevation = firstCellAfterHeader(context, "Elevation Arc", dev).split("/");
@@ -425,8 +433,10 @@ public class Crawler {
         // view
         String view = firstXPathTextResult(context, String.format(".//tr/th[text() = \"View Range\"]/following-sibling::td/span[@class=\"%s\"]/div/text()", dev), "0");
         equip.viewRange = format.parse(view).doubleValue();
-        // deprecated
-        //equip.viewRange = format.parse(firstCellAfterHeader(context, "View Range", dev)).doubleValue();
+        
+        if(equip.viewRange < 1) {   // use old method for unrealistic values
+            equip.viewRange = format.parse(firstCellAfterHeader(context, "View Range", dev)).doubleValue();
+        }
         
         return equip;
     }
@@ -565,6 +575,7 @@ public class Crawler {
         
         e.nation = nation;
         e.tier = parseTier(cells, 1);
+        e.wikiURL = parseModuleUrl(ModuleType.Engine, cells);
         e.name = parseStringBold(cells, 2);
         e.power = parseInt(cells, 3);
         e.firechance = parseInt(cells, 4);
@@ -598,6 +609,7 @@ public class Crawler {
         
         g.nation = nation;
         g.tier = parseTier(cells, 1);
+        g.wikiURL = parseModuleUrl(ModuleType.Gun, cells);
         g.name = parseStringBold(cells, 2);
         
         // ammo
@@ -657,6 +669,7 @@ public class Crawler {
         
         r.nation = nation;
         r.tier = parseTier(cells, 1);
+        r.wikiURL = parseModuleUrl(ModuleType.Radio, cells);
         r.name = parseStringBold(cells, 2);
         r.range = parseInt(cells, 3);
         parseCost(cells, 4, r);
@@ -681,6 +694,7 @@ public class Crawler {
         
         s.nation = nation;
         s.tier = parseTier(cells, 1);
+        s.wikiURL = parseModuleUrl(ModuleType.Suspension, cells);
         s.name = parseStringBold(cells, 2);
         s.load = parseDouble(cells, 3);
         s.traverse = parseInt(cells, 4);
@@ -706,6 +720,7 @@ public class Crawler {
         
         t.nation = nation;
         t.tier = parseTier(cells, 1);
+        t.wikiURL = parseModuleUrl(ModuleType.Turret, cells);
         t.name = parseStringBold(cells, 2);
         
         // armor
@@ -811,6 +826,16 @@ public class Crawler {
     }
     
     /**
+     * Parses the id of the selected module and generates a wikilink from it.
+     * @param type the type of module that is requested
+     * @param cells the cells of the row containing the details of this engine
+     * @return the wikilink to the module
+     */
+    protected String parseModuleUrl(ModuleType type, List<Node> cells) {
+        return type.toString() + "#" + firstXPathTextResult(cells.get(1), ".//div/@id", "");
+    }
+    
+    /**
      * Parses a list of tanks that are compatible to a module
      * @param cells the cells of the row containing the required value
      * @param cell the position (starting by 1) of the required value in the list of cells
@@ -820,8 +845,8 @@ public class Crawler {
         List<Node> links = evaluateXPath(getRelevantContext(cells, cell), "./a/@title");
         List<TankRef> compat = new ArrayList<TankRef>(links.size());
         
-        for (Node tankName : links) {
-            compat.add(getTankRefByName(tankName.getTextContent()));
+        for (Node tankWikiLink : links) {
+            compat.add(getTankRefByUrl(tankWikiLink.getTextContent()));
         }
         
         return compat;
@@ -860,11 +885,11 @@ public class Crawler {
     
     /**
      * Returns a tank reference that points to the tank of the specified name
-     * @param name the name of the tank to refer to
+     * @param wikiURL the wiki url of the tank to refer to
      * @return the corresponding tank reference
      */
-    protected TankRef getTankRefByName(String name) {
-        return new TankRef(tankMapping.get(name));
+    protected TankRef getTankRefByUrl(String wikiURL) {
+        return new TankRef(tankMapping.get(wikiURL));
     }
     
     
@@ -1064,7 +1089,7 @@ public class Crawler {
      * @return the NCName conform ID generated from this name
      */
     protected static String generateTankID(String name) {
-        return "_" + name.replace(" ", "").replace("(", "").replace(")", "").replace("/", "-").replace(".", "");
+        return "_" + cleanFileName(name).replace(" ", "").replace("(", "").replace(")", "").replace(".", "");
     }
     
     /**
@@ -1074,9 +1099,38 @@ public class Crawler {
      * @return the filename generated from the site name
      */
     public static String siteToFileName(String siteName) {
-        return siteName.replace('\\', '_').replace('/', '_') + ".html";
+        return cleanFileName(siteName) + ".html";
     }
     
+    /**
+     * A set of illegal chars in filenames (unified list of unix and windows chars)
+     */
+    final static int[] illegalChars = {34, 60, 62, 124, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 58, 42, 63, 92, 47};
+    static {
+        // need this to ensure that binarySearch can work!
+        Arrays.sort(illegalChars);
+    }
+    
+    /**
+     * Removes all illegal chars from a filename and replaces them with '_' at
+     * their original index
+     * @param badFileName the old (possibly faulty) filename
+     * @return a possibly modified version of the file name that works with
+     * every file system
+     */
+    public static String cleanFileName(String badFileName) {
+        StringBuilder cleanName = new StringBuilder();
+        for (int i = 0; i < badFileName.length(); i++) {
+            int c = (int) badFileName.charAt(i);
+            if (Arrays.binarySearch(illegalChars, c) < 0) {
+                cleanName.append((char) c);
+            } else {
+                // replace all illegal chars by '_'
+                cleanName.append('_');
+            }
+        }
+        return cleanName.toString();
+    }
     
     /**
      * Decides, if a crawler recieves files from the local filesystem or

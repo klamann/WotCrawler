@@ -77,12 +77,12 @@ public class Tank extends BaseProperties {
     
     /** Max. rotation of gun / turret to the left (deg) */
     @XmlElement
-    public int gunArcLeft;       // change to gunArcLeft on next revision
+    public double gunArcLeft;       // change to gunArcLeft on next revision
     
     /** Max. rotation of the gun to the right (deg).
         Note that 360° means the tower can rotate infinitely */
     @XmlElement
-    public int gunArcRight;      // change to gunArcRight on next revision
+    public double gunArcRight;      // change to gunArcRight on next revision
     
     /** This object holds the stock equipment for this tank */
     @XmlElement(name = "stock")

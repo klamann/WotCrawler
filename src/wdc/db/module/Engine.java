@@ -68,11 +68,11 @@ public class Engine extends Module implements Comparable<Engine> {
          */
         public static Gas parse(String parse) throws IllegalAccessException {
             String s = parse.trim().toLowerCase();
-            if("gasoline".equals(s)) {
+            if(s.startsWith("gasoline")) {
                 return Gas.Gasoline;
-            } else if("diesel".equals(s)) {
+            } else if(s.startsWith("diesel")) {
                 return Gas.Diesel;
-            }  else {
+            } else {
                 throw new IllegalAccessException("Gas type " + parse + " was not recognized.");
             }
         }

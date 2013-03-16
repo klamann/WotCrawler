@@ -109,7 +109,7 @@ public enum Field {
     T_GunArc_Left {
         @Override
         public String get(Tank t, Development dev) {
-            return Integer.toString(t.gunArcLeft);
+            return df.format(t.gunArcLeft);
         }
     },
     /** Max. rotation of the gun to the right (deg).
@@ -117,7 +117,7 @@ public enum Field {
     T_GunArc_Right {
         @Override
         public String get(Tank t, Development dev) {
-            return Integer.toString(t.gunArcRight);
+            return df.format(t.gunArcRight);
         }
     },
     /** Hull armor (mm) - Front */
@@ -153,7 +153,7 @@ public enum Field {
         @Override
         public String get(Tank t, Development dev) {
             try {
-                return String.format("<a href=\"%s\">%s</a>", Crawler.buildWikiLink(t.name).toString(), t.name);
+                return String.format("<a href=\"%s\">%s</a>", Crawler.buildWikiLink(t.wikiURL).toString(), t.name);
             } catch (MalformedURLException ex) {
                 Logger.getLogger(Transformer.class.getName()).log(Level.SEVERE, null, ex);
                 return t.name;
@@ -1260,6 +1260,19 @@ public enum Field {
             return calculateDPS(g, dev, g.dmgHEAT);
         }
     },
+    /** Horse Power per Ton, Tank accelerates faster for high values */
+    DP_HPperTon {
+        @Override
+        public String get(Tank t, Development dev) {
+            return df.format(calc(t, dev));
+        }
+        @Override
+        public double calc(Tank t, Development dev) {
+            Equipment eq = getEquipment(t, dev);
+            Engine e = ModuleMap.getModuleByDev(Engine.class, t, dev);
+            return ((double) e.power) / eq.weight;
+        }
+    },
     //</editor-fold>
     
     //<editor-fold defaultstate="collapsed" desc="ratings">
@@ -1338,6 +1351,13 @@ public enum Field {
         @Override
         public String get(TankRating tr) {
             return ratingHTMLsp(tr.enginePower, tr.e.power, ME_Power.best);
+        }
+    },
+    /** the power-weight ratio rating */
+    RT_PowerWeightRatio {
+        @Override
+        public String get(TankRating tr) {
+            return ratingHTMLsp(tr.powerWeightRatio, Field.DP_HPperTon.calc(tr.t, tr.eq.development), DP_HPperTon.best);
         }
     },
     /** the radio transmission rate rating */
@@ -1728,6 +1748,7 @@ public enum Field {
         updateMax(Field.DP_DmgPS_APCR , t, dev);
         updateMax(Field.DP_DmgPS_HE , t, dev);
         updateMax(Field.DP_DmgPS_HEAT , t, dev);
+        updateMax(Field.DP_HPperTon, t, dev);
         
         // depending on dev --> always use best values, will be applied anyways
         switch (eq.development) {

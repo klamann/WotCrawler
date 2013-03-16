@@ -66,6 +66,7 @@ public class TankRating {
     protected double gunAmmo;
     protected double speed;
     protected double enginePower;
+    protected double powerWeightRatio;
     protected double radioRange;
     protected double viewRange;
     // more advanced ratings, but focused on single basic stats
@@ -137,6 +138,7 @@ public class TankRating {
         this.traverseSuspension = percentage(Field.MS_Traverse , s.traverse);
         this.speed = percentage(Field.T_TopSpeed , t.speed);
         this.enginePower = percentage(Field.ME_Power , e.power);
+        this.powerWeightRatio = percentage(Field.DP_HPperTon, t, eq.development);
         this.radioRange = percentage(Field.MR_Range , r.range);
         this.viewRange = percentage(Field.TE_ViewRange , eq.viewRange);
         
@@ -238,9 +240,10 @@ public class TankRating {
                 0.04 * gunElevation +
                 0.06 * weight;     // ram
         this.ratingMobility = 
-                0.6 * speed +
-                0.2 * traverseSuspension +
-                0.2 * traverseTurret;
+                0.45 * speed +
+                0.30 * powerWeightRatio +
+                0.15 * traverseSuspension +
+                0.10 * traverseTurret;
         this.ratingRecon = 
                 0.35 * radioRange +
                 0.65 * viewRange;
@@ -278,9 +281,10 @@ public class TankRating {
                 0.03 * gunElevation +
                 0.04 * weight;     // ram
         this.ratingMobility = 
-                0.6 * speed +
-                0.2 * traverseSuspension +
-                0.2 * traverseTurret;
+                0.4 * speed +
+                0.3 * powerWeightRatio +
+                0.15 * traverseSuspension +
+                0.15 * traverseTurret;
         this.ratingRecon = 
                 0.35 * radioRange +
                 0.65 * viewRange;
@@ -318,7 +322,8 @@ public class TankRating {
                 0.03 * gunElevation +
                 0.04 * weight;     // ram
         this.ratingMobility = 
-                0.4 * speed +
+                0.24 * speed +
+                0.16 * powerWeightRatio +
                 0.2 * traverseSuspension +
                 0.4 * traverseTurret;
         this.ratingRecon = 
@@ -349,8 +354,9 @@ public class TankRating {
                 0.04 * gunElevation +
                 0.03 * traverseSuspension;
             this.ratingMobility = 
-                0.6 * speed +
-                0.4 * traverseSuspension;
+                0.35 * speed +
+                0.15 * powerWeightRatio +
+                0.5 * traverseSuspension;
         } else {
             this.ratingDefense =
                 0.3 * hitpoints +
@@ -363,9 +369,10 @@ public class TankRating {
                 0.02 * traverseSuspension +
                 0.04 * traverseTurret;
             this.ratingMobility = 
-                0.55 * speed +
-                0.2 * traverseSuspension +
-                0.25 * traverseTurret;
+                0.35 * speed +
+                0.15 * powerWeightRatio +
+                0.15 * traverseSuspension +
+                0.35 * traverseTurret;
         }
         
         this.ratingAttack = 
@@ -406,8 +413,9 @@ public class TankRating {
                 0.03 * gunElevation +
                 0.15 * traverseSuspension;
             this.ratingMobility = 
-                0.35 * speed +
-                0.65 * traverseSuspension;
+                0.2 * speed +
+                0.1 * powerWeightRatio +
+                0.7 * traverseSuspension;
         } else {
             this.ratingDefense =
                 0.25 * hitpoints +
@@ -420,9 +428,10 @@ public class TankRating {
                 0.05 * traverseSuspension +
                 0.15 * traverseTurret;
             this.ratingMobility = 
-                0.35 * speed +
+                0.15 * speed +
+                0.08 * powerWeightRatio +
                 0.2 * traverseSuspension +
-                0.45 * traverseTurret;
+                0.57 * traverseTurret;
         }
         
         this.ratingAttack = 

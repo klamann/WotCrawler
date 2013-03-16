@@ -34,6 +34,10 @@ public abstract class BaseProperties {
     @XmlElement
     public String name;
     
+    /** The wiki page name under which the object can be found */
+    @XmlElement
+    public String wikiURL;
+    
     /** The Nation this object belongs to */
     @XmlElement
     public Nation nation;

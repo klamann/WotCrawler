@@ -9,7 +9,7 @@
 
 @XmlSchema (
     xmlns = {},
-    namespace = "http://nx42.de/projects/wot/schema11",
+    namespace = "http://nx42.de/projects/wot/schema121",
     elementFormDefault = XmlNsForm.QUALIFIED,
     attributeFormDefault = XmlNsForm.UNSET
 )
