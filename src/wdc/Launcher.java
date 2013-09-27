@@ -102,7 +102,7 @@ public class Launcher {
                 String parsed = jc.getParsedCommand();
                 
                 for (Command c : commands) {
-                    if(parsed == c.cmd1) {
+                    if(parsed.equals(c.cmd1)) {
                         //System.out.println("parsed: " + c.cmd1);
                         c.launch();
                     }

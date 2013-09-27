@@ -42,6 +42,10 @@ public class Download {
     /** the crawler, used to retrieve and generate the download urls */
     protected static final Crawler cr = new Crawler();
     
+    public static final String folderLists = "lists";
+    public static final String folderModules = "modules";
+    public static final String folderTanks = "tanks";
+    
     /**
      * Downloads all relevant wiki pages (tank overview, modules and tanks)
      * to the specified folder
@@ -50,13 +54,13 @@ public class Download {
     public static void downloadAll(String downloadFolder) {
         
         System.out.println("Downloading tank overview pages... ");
-        downloadTankLists(downloadFolder);
+        downloadTankLists(downloadFolder + "/" + folderLists);
         
         System.out.println("\nDownloading module overview pages... ");
-        downloadModules(downloadFolder);
+        downloadModules(downloadFolder + "/" + folderModules);
         
         System.out.println("\nDownloading single tank detail pages...");
-        downloadTanks(downloadFolder);
+        downloadTanks(downloadFolder + "/" + folderTanks);
         
     }
     
@@ -95,6 +99,9 @@ public class Download {
             String fsName = Crawler.siteToFileName(page.getPath().substring(1));
             try {
                 System.out.println(String.format("Downloading page '%s' to file '%s'", page.getPath(), fsName));
+                if(!new File(downloadFolder).exists()) {
+                    new File(downloadFolder).mkdirs();
+                }
                 downloadFile(page, downloadFolder, fsName);
             } catch (MalformedURLException ex) {
                 Logger.getLogger(Download.class.getName()).log(Level.SEVERE, null, ex);

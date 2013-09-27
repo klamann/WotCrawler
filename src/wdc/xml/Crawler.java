@@ -18,6 +18,8 @@ package wdc.xml;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.NumberFormat;
@@ -59,6 +61,7 @@ import wdc.db.tank.Tank;
 import wdc.db.tank.Tank.TankType;
 import wdc.db.tank.TankRef;
 import wdc.util.Conversion;
+import wdc.util.Download;
 import wdc.util.Tuple;
 
 /**
@@ -78,6 +81,8 @@ public class Crawler {
     protected Source src;
     /** If the local file system is used as source, this is the folder where all the pages are */
     protected String localFolder;
+    /** Common subfolders that might be used for different types of data */
+    protected File[] localParents;
     
     /** the tanks database that is filled by this crawler */
     protected TanksDB db = new TanksDB();
@@ -101,6 +106,12 @@ public class Crawler {
     public Crawler(String localFolder) {
         this.src = Source.FILE;
         this.localFolder = localFolder;
+        this.localParents = new File[]{ 
+            new File(localFolder, Download.folderTanks),
+            new File(localFolder, Download.folderModules),
+            new File(localFolder, Download.folderLists),
+            new File(localFolder)
+        };
     }
     
     /**
@@ -159,13 +170,73 @@ public class Crawler {
     public List<URL> getModuleOverviewURLs() {
         List<URL> urls = new LinkedList<URL>();
         for (ModuleType m : ModuleType.values()) {
-            try {
+            urls.addAll(getModuleOverviewURLs(m));
+        }
+        return urls;
+    }
+    
+    /**
+     * Generates the URLs for the module overview pages of the specified
+     * module (http or file). Module lists might be split by nation on
+     * several wiki-pages
+     * @param m the module type to crawl
+     * @return A list of URLs with overview-pages for this module type
+     * (either one big list or one for each nation)
+     */
+    protected List<URL> getModuleOverviewURLs(ModuleType m) {
+        List<URL> urls = new LinkedList<URL>();
+        try {
+            boolean subFolders = false;
+            String testPage = m.getOverviewPage() + "/" + Nation.Germany;
+            if(src == Source.FILE)
+                subFolders = existsLocalFile(testPage);
+            if(src == Source.URL)
+                subFolders = is404(buildURL(testPage));
+            
+            if(subFolders) {
+                // each nation has it's own subpage for this module
+                for (Nation n : Nation.values()) {
+                    urls.add(buildURL(m.getOverviewPage() + "/" + n));
+                }
+            } else {
+                // single overview page for all nations
                 urls.add(buildURL(m.getOverviewPage()));
+            }
+        } catch (IOException ex) {
+            Logger.getLogger(Crawler.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return urls;
+    }
+
+    /**
+     * Checks, if a HTTP URL request would return 404 (without redirecting, so
+     * empty wikipages do also return 404)
+     * @param httpUrl the URL to check
+     * @return true, if the webserver would return 404 for this URL (no
+     * redirection)
+     */
+    protected static boolean is404(URL httpUrl) {
+        OutputStream os = null;
+        try {
+            HttpURLConnection huc = (HttpURLConnection) httpUrl.openConnection();
+            huc.setRequestMethod("GET");
+            huc.setInstanceFollowRedirects(false);
+            huc.setDoOutput(true);
+            huc.connect();
+            os = huc.getOutputStream();
+            return huc.getResponseCode() == 404;
+        } catch (IOException ex) {
+            Logger.getLogger(Crawler.class.getName()).log(Level.SEVERE, null, ex);
+            return false;
+        } finally {
+            try {
+                if (os != null) {
+                    os.close();
+                }
             } catch (IOException ex) {
                 Logger.getLogger(Crawler.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
-        return urls;
     }
     
     /**
@@ -208,8 +279,11 @@ public class Crawler {
         List<Node> nodes = evaluateXPath(context, ".//li/a/@href");
         // System.out.println("Tanks in this category: " + nodes.size());
         for (Node node : nodes) {
-            // build url (the substring is used to remove the first '/')
-            urls.add(buildURL(node.getTextContent().substring(1)));
+            // build url (the substring is used to remove the leading '/')
+            String tankUrl = node.getTextContent().substring(1);
+            if(!tankUrl.contains(".png")) {
+                urls.add(buildURL(tankUrl));
+            }
         }
         
         return urls;
@@ -362,8 +436,9 @@ public class Crawler {
         // crew
         tank.crewMembers = (byte) (evaluateXPath(context2, ".//th[text() = \"Crew\"]/../following-sibling::tr[1]//br").size() + 1);
         
-        // speed
-        tank.speed = Double.parseDouble(firstCellAfterHeader(context2, "Speed Limit").split(" ")[0]);
+        // speed (new format, e.g.: 58/20 km/h)
+        String speed = firstCellAfterHeader(context2, "Speed Limit").split(" ")[0];
+        tank.speed = Double.parseDouble(speed.contains("/") ? speed.substring(0, speed.indexOf('/')) : speed);
         
         // hull
         String[] hull = firstCellAfterHeader(context2, "Hull Armor").split("/");
@@ -376,10 +451,14 @@ public class Crawler {
         if(gunarc.length == 1) {
             // usually 360 here, so make it 0-360
             tank.gunArcLeft  = 0;
-            tank.gunArcRight = Double.parseDouble(gunarc[0]);
+            tank.gunArcRight = gunarc[0].contains("?") ? 0 : Double.parseDouble(gunarc[0]);
         } else {
-            tank.gunArcLeft  = Double.parseDouble(gunarc[0]);
-            tank.gunArcRight = Double.parseDouble(gunarc[1]);
+            if(gunarc[0].contains("?") || gunarc[1].contains("?")) {
+                tank.gunArcLeft = tank.gunArcRight = 0;
+            } else {
+                tank.gunArcLeft  = Double.parseDouble(gunarc[0]);
+                tank.gunArcRight = Double.parseDouble(gunarc[1]);
+            }
         }
         
         // depending equipment
@@ -427,8 +506,10 @@ public class Crawler {
         
         // elevation
         String[] elevation = firstCellAfterHeader(context, "Elevation Arc", dev).split("/");
-        equip.gunElevationLow = Double.parseDouble(elevation[0].replace("--", "-"));       // fix for bug in wiki...
-        equip.gunElevationHigh = Double.parseDouble(elevation[1]);
+        if(!elevation[0].contains("?") && !elevation[1].contains("?")) {
+            equip.gunElevationLow = Double.parseDouble(elevation[0].replace("--", "-"));       // fix for bug in wiki...
+            equip.gunElevationHigh = Double.parseDouble(elevation[1]);
+        }
         
         // view
         String view = firstXPathTextResult(context, String.format(".//tr/th[text() = \"View Range\"]/following-sibling::td/span[@class=\"%s\"]/div/text()", dev), "0");
@@ -488,24 +569,36 @@ public class Crawler {
      * @return list of all modules of the specified type
      */
     protected List crawlModuleType(ModuleType type) {
-        List<Module> modules = new ArrayList<Module>(100);
+        System.out.println("- Crawling Modules: " + type.getOverviewPage());
         
+        List<Module> modules = new ArrayList<Module>(100);
+        List<URL> source = getModuleOverviewURLs(type);
+   
         try {
-            System.out.println("- Crawling Modules: " + type.getOverviewPage());
-            System.out.println("  * Retrieving...");
-            
-            Document moduleSite = Parser.parseHTML(buildURL(type.getOverviewPage()));
-            Node context = firstXPathResult(moduleSite, "//div[@class=\"mw-content-ltr\"]");
-            
-            System.out.print("  * Parsing... ");
+            if (source.size() == 1) {
+                
+                System.out.println("  * Retrieving... ");
 
-            List<Node> perNation = evaluateXPath(context, ".//div[@class = \"ModuleList\"]");
-            for (Node node : perNation) {
-                crawlModuleNation(type, modules, node);
+                Document moduleSite = Parser.parseHTML(buildURL(type.getOverviewPage()));
+                Node context = firstXPathResult(moduleSite, "//div[@class=\"mw-content-ltr\"]");
+
+                System.out.print("  * Parsing... ");
+
+                List<Node> perNation = evaluateXPath(context, ".//div[@class = \"ModuleList\"]");
+                for (Node node : perNation) {
+                    crawlModuleNation(type, modules, node);
+                }
+                
+            } else {
+
+                System.out.print("  * Processing... ");
+                for (URL url : source) {
+                    Document moduleSite = Parser.parseHTML(url);
+                    Node context = firstXPathResult(moduleSite, "//div[@class = \"ModuleList\"]");
+                    crawlModuleNation(type, modules, context);
+                }
+
             }
-            
-            System.out.println("done.");
-
         } catch (IOException ex) {
             Logger.getLogger(Crawler.class.getName()).log(Level.SEVERE, null, ex);
         } catch (ParserConfigurationException ex) {
@@ -514,6 +607,7 @@ public class Crawler {
             Logger.getLogger(Crawler.class.getName()).log(Level.SEVERE, null, ex);
         }
 
+        System.out.println("done.");
         return modules;
     }
     
@@ -534,7 +628,7 @@ public class Crawler {
         }
         
         Nation nation = Nation.parseAdvanced(nationString);
-        System.out.print(nation.toString() + ".. ");
+        System.out.print(nation + ".. ");
         
         List<Node> rows = evaluateXPath(context, "./table/tbody/tr[not(@*)]");
         for (Node row : rows) {
@@ -1061,13 +1155,46 @@ public class Crawler {
     protected URL buildURL(String siteName) throws MalformedURLException {
         switch(src) {
             case FILE:
-                return new File(localFolder, siteToFileName(siteName)).toURI().toURL();
+                return findLocalFile(siteName).toURI().toURL();
             case URL:
                 return buildWikiLink(siteName);
             default:
                 System.err.println("Unknown enum value: " + src.toString());
                 return null;
         }
+    }
+    
+    /**
+     * Searches for a local file for the given site name in the commonly used
+     * folders. Throws an exception, if the file is not found.
+     * @param siteName the name of the site in the wot wiki
+     * @return the local copy of the wiki-page
+     */
+    protected File findLocalFile(String siteName) {
+        String file = siteToFileName(siteName);
+        for (File parent : localParents) {
+            File f = new File(parent, file);
+            if(f.exists()) {
+                return f;
+            }
+        }
+        throw new RuntimeException("File for " + siteName + " was not found");
+    }
+    
+    /**
+     * Decices, if there is a local copy of a wikipage for the given page name
+     * @param siteName the name of the site in the wot wiki
+     * @return true, if the local copy exists
+     */
+    protected boolean existsLocalFile(String siteName) {
+        String file = siteToFileName(siteName);
+        for (File parent : localParents) {
+            File f = new File(parent, file);
+            if(f.exists()) {
+                return true;
+            }
+        }
+        return false;
     }
     
     /**

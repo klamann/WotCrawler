@@ -208,7 +208,7 @@ public class Tank extends BaseProperties {
                 return TankType.HeavyTank;
             }  else if("TD".equals(s) || "Tank Destroyer".equals(s) || "Turreted TD".equals(s)) {
                 return TankType.TankDestroyer;
-            }  else if("SPG".equals(s) || "Self Propelled Gun".equals(s)) {
+            }  else if("SPG".equals(s) || "Turreted SPG".equals(s) || "Self Propelled Gun".equals(s)) {
                 return TankType.SelfPropelledGun;
             } else {
                 throw new IllegalAccessException("Tank Type " + s + " was not recognized.");
