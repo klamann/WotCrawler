@@ -1,3 +1,24 @@
-/build/
-/nbproject/private/
-/dist/
+# Maven
+target/
+*.ser
+*.ec
+
+# IntelliJ Idea
+.idea/
+out/
+*.ipr
+*.iws
+*.iml
+
+# Eclipse
+.classpath
+.project
+.settings/
+.metadata/
+bin/
+
+# Netbeans
+nbproject/private/
+build/
+dist/
+/target

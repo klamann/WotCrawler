@@ -1,0 +1,194 @@
+# Rating system
+
+## Main categories:
+
+* Defense
+* Attack
+* Mobility
+* Recon
+* Preis-Leistung
+
+## Parts of Categories
+
+### Defense
+
+* Hitpoints
+* Hull Armor -> F 50%, S 30%, R 20%
+* Turret Armor -> F 50%, S 30%, R 20% <- only if turret available!
+* Weight (resist ram)
+* Engine Firechance
+* Gun Arc / Elevation / turret and suspension traverse speed <- only if turret available!
+  -> can be important for defensive moves...
+
+### Attack
+
+* Gunarc -> sum of |left|, |right|
+* Elevation -> sum of |low|, |high|
+* Weight (ram)
+* Accuracy
+* AimTime -> normalize by fire rate? (low fire rate tanks have high aim time, that's not too bad...)
+* Damage * RPM -> for each ammo type != 0
+* Pen -> for each ammo type != 0
+* Alternatively: Combined Rating of dmg, rate and pen
+* Ammo !!! (normalized by RPM) !!!
+
+### Mobility
+
+* TopSpeed
+* Engine Power ? -> rather not
+* Suspension Treverse
+* Turret Traverse
+
+### Recon
+
+* Radio
+* ViewRange
+
+### P/L
+
+* Cost / Currency
+  --> compare to sum of previous ratings
+
+
+
+## Calculation
+
+Tanks are only compared within their type. For each Type and Attribute, a
+maximum and a minimum are defined. Within these bonds, the individual tank
+attributes are rated from 0 to 100%. The rating can be linear for starters...
+
+Individual weights are defined for each tank type (e.g. accuracy is way more
+important for arty than light tank...)
+
+
+
+
+
+
+## Appendix
+
+### ToDo
+
+* Pick gun by best combination of fire rate, dmg, pen; not just tier
+* Cost / benefit
+* Incomplete data
+* Header Comments
+* Description
+
+### Bug fix list
+
+* none that can be solved right now...
+
+### Known Problems
+
+* Data is still incomplete -> results can fail
+
+### Available fields
+
+
+        // tank (base)
+        Field.T_Name,
+        Field.T_Type,
+        Field.T_Nation,
+        Field.T_Tier,
+        Field.T_BattleTier_Min,
+        Field.T_BattleTier_Max,
+        Field.T_CrewMembers,
+        Field.T_TopSpeed,
+        Field.T_Hull_Front,
+        Field.T_Hull_Side,
+        Field.T_Hull_Rear,
+        Field.T_Cost,
+        Field.T_Currency,
+        Field.T_Gift,
+        Field.T_GunArc_Low,
+        Field.T_GunArc_High,
+        Field.T_Children,
+        Field.T_Parents,
+        
+        // tank (depending)
+        Field.TE_Development,
+        Field.TE_Elevation_Low,
+        Field.TE_Elevation_High,
+        Field.TE_Hitpoints,
+        Field.TE_ViewRange,
+        Field.TE_Weight,
+        Field.TE_WeightLimit,
+        
+        // module: engine
+        Field.ME_Name,
+        Field.ME_Tier,
+        Field.ME_Nation,
+        Field.ME_Cost,
+        Field.ME_Currency,
+        Field.ME_Weight,
+        Field.ME_Compatibility,
+        // specifics
+        Field.ME_Firechance,
+        Field.ME_Gas,
+        Field.ME_Power,
+        
+        // module: gun
+        Field.MG_Name,
+        Field.MG_Tier,
+        Field.MG_Nation,
+        Field.MG_Cost,
+        Field.MG_Currency,
+        Field.MG_Weight,
+        Field.MG_Compatibility,
+        // specifics
+        Field.MG_Accuracy_Min,
+        Field.MG_Accuracy_Max,
+        Field.MG_AimTime_Min,
+        Field.MG_AimTime_Max,
+        Field.MG_AmmoCapacity_Min,
+        Field.MG_AmmoCapacity_Max,
+        Field.MG_Dmg_AP,
+        Field.MG_Dmg_APCR,
+        Field.MG_Dmg_HE,
+        Field.MG_Dmg_HEAT,
+        Field.MG_FireRate_Min,
+        Field.MG_FireRate_Max,
+        Field.MG_Penetration_AP,
+        Field.MG_Penetration_APCR,
+        Field.MG_Penetration_HE,
+        Field.MG_Penetration_HEAT,
+        
+        // module: radio
+        Field.MR_Name,
+        Field.MR_Tier,
+        Field.MR_Nation,
+        Field.MR_Cost,
+        Field.MR_Currency,
+        Field.MR_Weight,
+        Field.MR_Compatibility,
+        // specifics
+        Field.MR_Range,
+        
+        // module: suspension
+        Field.MS_Name,
+        Field.MS_Tier,
+        Field.MS_Nation,
+        Field.MS_Cost,
+        Field.MS_Currency,
+        Field.MS_Weight,
+        Field.MS_Compatibility,
+        // specifics
+        Field.MS_Load,
+        Field.MS_Traverse,
+        
+        // module: turret
+        Field.MT_Name,
+        Field.MT_Tier,
+        Field.MT_Nation,
+        Field.MT_Cost,
+        Field.MT_Currency,
+        Field.MT_Weight,
+        Field.MT_Compatibility,
+        // specifics
+        Field.MT_Armor_Front,
+        Field.MT_Armor_Side,
+        Field.MT_Armor_Rear,
+        Field.MT_Traverse,
+        Field.MT_ViewRange
+        
