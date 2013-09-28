@@ -1,21 +1,24 @@
 # WoT Database Crawler
 
-description
+The WoT Database Crawler is a generic tool to rebuild the internal Vehicle Database
+from the popular computer game [World of Tanks](http://worldoftanks.com/) by crawling
+the data that is available from the public wiki.
 
-## Features
+The program creates an XML database that can be used to generate more sophisticated
+content analysis (see [examples](http://www.nx42.de/projects/wot/rating.html)).
+Basic content analysis and HTML table export are already implemented.
 
-tbd
+## Database and Binaries
+
+The full XML database and the latest binaries are available from the
+[developer section](http://www.nx42.de/projects/wot/developers.html)
+of the project home page.
 
 ## Contact
 
-tochange
+WotCrawler is being developed by Sebastian Straub, <sebastian-straub@gmx.net>.
 
-vbp is being developed by Sebastian Straub, <sebastian-straub@gmx.net>
-
-For updates, visit the [Project Homepage](https://github.com/Klamann/Video-Batch-Processor).
-For further information, visit [the wiki](https://github.com/Klamann/Video-Batch-Processor/wiki).
-
-Found any bugs? Please report them to the [Issue Tracker](https://github.com/Klamann/Video-Batch-Processor/issues).
+For further information, please visit the [project homepage](http://www.nx42.de/projects/wot/).
 
 ## Copyright
 
@@ -33,4 +36,3 @@ Found any bugs? Please report them to the [Issue Tracker](https://github.com/Kla
     
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
